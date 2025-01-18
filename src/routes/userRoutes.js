@@ -7,10 +7,10 @@ import {
   getAllUsers,
   getUserById,
   updateProfile,
-  updateUserStatus,
   deleteUser,
   changePassword,
   forgotPassword,
+  toggleUserStatus,
 } from "../controllers/userController.js";
 import { userAuth } from "../middlewares/userAuth.js";
 
@@ -28,7 +28,7 @@ router.get("/allUsers", userAuth, getAllUsers);
 
 router.put("/update", userAuth, updateProfile);
 
-router.put("/status/:id", userAuth, updateUserStatus);
+router.put("/status/:id", userAuth, toggleUserStatus);
 
 router.delete("/delete/:id", userAuth, deleteUser);
 
