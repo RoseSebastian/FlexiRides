@@ -22,7 +22,7 @@ const adminSchema = new Schema({
     type: String,
     required: true,
   },
-  profiePic: {
+  profilePic: {
     type: String,
   },
   role: {

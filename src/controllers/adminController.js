@@ -1,6 +1,9 @@
 import { Admin } from "../models/adminModel.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/jwt.js";
+import jwt from "jsonwebtoken";
+import uploadToCloudinary from "../middlewares/uploadToCloudinary.js";
+import sendEmail from "../utils/sendMail.js";
 
 const salt_rounds = Number(process.env.SALT_ROUNDS);
 const removePassword = (user) => {
@@ -12,6 +15,7 @@ const removePassword = (user) => {
 
 export const adminRegister = async (req, res) => {
   try {
+    let profileUrl = "";
     const { username, email, password, phone, role } = req.body;
     if (!username || !email || !password || !phone || !role) {
       return res.status(400).json({ message: "Mandatory fields are missing" });
@@ -21,12 +25,18 @@ export const adminRegister = async (req, res) => {
       return res.status(400).json({ message: `${isUserExist.role} already exists` });
     }
     const hashedPassword = bcrypt.hashSync(password, salt_rounds);
+
+    if(req.files && req.files.profilePic){
+      profileUrl = await uploadToCloudinary(req.files.profilePic, 'profile_pictures');
+    }
+
     const userData = new Admin({
       username,
       email,
       password: hashedPassword,
       phone,
       role,
+      profilePic : profileUrl?.secure_url
     });
     await userData.save();
 
@@ -125,11 +135,15 @@ export const getUserById = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
+    let profileUrl = "";
     const { username, email, phone } = req.body;
     if (!username || !email || !phone) {
       return res.status(400).json({ message: "Mandatory fields are missing" });
     }
-    const user = await Admin.findByIdAndUpdate(req.loggedInUser.id, req.body, {
+    if(req.files && req.files.profilePic){
+      profileUrl = await uploadToCloudinary(req.files.profilePic, 'profile_pictures');
+    }
+    const user = await Admin.findByIdAndUpdate(req.loggedInUser.id, {...req.body, profilePic: profileUrl?.secure_url}, {
       new: true,
     }).select("-password");
     if (!user) {
@@ -201,9 +215,9 @@ export const changePassword = async (req, res) => {
 
 export const forgotPassword = async (req, res) => {
   try {
-    const { email, newPassword } = req.body;
-    if (!email || !newPassword) {
-      return res.status(400).json({ message: "Mandatory fields are missing" });
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
     }
 
     const userData = await Admin.find({email});
@@ -211,14 +225,19 @@ export const forgotPassword = async (req, res) => {
       return res.status(404).json({ message: "User does not exists" });
     }
 
-    const hashedPassword = bcrypt.hashSync(newPassword, salt_rounds);
+    const resetToken = generateToken(userData, userData.role);
+    const resetLink = `${process.env.WEB_URL}/reset-password?token=${resetToken}`;
+    const mailBody = `<p>We received a request to reset your password.</p>
+          <p>Click the link below to reset your password:</p>
+          <a href="${resetLink}">${resetLink}</a>
+          <p>If you didn't request this, you can ignore this email.</p>
+      `;
+    const subject = "Password Reset Request";
+    sendEmail(email, subject, mailBody)
+      .then(() => console.log("Email sent successfully"))
+      .catch((error) => console.error("Error sending email:", error));
 
-    await Admin.findByIdAndUpdate(
-      userData._id,
-      { ...userData, password: hashedPassword },
-      { new: true }
-    );
-    res.status(200).json({ message: "Password reset successfully" });
+    res.status(200).json({ message: "Password reset email sent." });
   } catch (error) {
     res
       .status(error.statusCode || 500)
@@ -227,3 +246,39 @@ export const forgotPassword = async (req, res) => {
 };
 
 
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) {
+      return res
+        .status(400)
+        .json({ message: "Token and new password are required" });
+    }
+
+    // Verify the reset token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    if (!decoded) {
+      return res.status(401).json({ message: "Invalid or expired token" });
+    }
+
+    // Hash the new password
+    const hashedPassword = bcrypt.hashSync(newPassword, salt_rounds);
+
+    // Update user's password
+    const user = await Admin.findByIdAndUpdate(
+      decoded.id,
+      { password: hashedPassword },
+      { new: true }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (error) {
+    res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};

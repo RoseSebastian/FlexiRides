@@ -11,6 +11,7 @@ import {
   changePassword,
   forgotPassword,
   toggleUserStatus,
+  resetPassword
 } from "../controllers/userController.js";
 import { userAuth } from "../middlewares/userAuth.js";
 
@@ -37,6 +38,8 @@ router.get("/logout", userAuth, userLogout);
 router.put("/changePassword", userAuth, changePassword);
 
 router.put("/forgotPassword", forgotPassword);
+
+router.post("/resetPassword", resetPassword);
 
 //check-user
 
