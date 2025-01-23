@@ -16,16 +16,19 @@ const carSchema = new Schema({
   bodyType: {
     type: String,
     required: true,
+    enum: ["sedan", "hatchback", "suv"],
     maxLength: 10,
   },
   fuelType: {
     type: String,
     required: true,
+    enum: ["petrol", "diesel", "electric"],
     minLength: 3,
   },
   transmission: {
     type: String,
     required: true,
+    enum: ["manual", "automatic"],
     maxLength: 10,
   },
   year: {
@@ -38,7 +41,7 @@ const carSchema = new Schema({
   },
   dealerId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "Admin",
     required: true,
   },
   price: {

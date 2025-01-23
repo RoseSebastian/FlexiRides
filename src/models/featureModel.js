@@ -4,7 +4,8 @@ const featureSchema = new Schema({
   name: {
     type: String,
     required: true,
+    unique: true,
   },
 });
 
-export const Feature = mongoose.model("Rating", featureSchema);
+export const Feature = mongoose.model("Features", featureSchema);

@@ -5,7 +5,7 @@ import { adminAuth } from "../middlewares/adminAuth.js";
 const router = express.Router();
 
 // Create a new car
-router.post('/add', carController.createCar);
+router.post('/add',adminAuth, carController.createCar);
 
 // Get all cars
 router.get('/all', carController.getAllCars);
@@ -14,12 +14,12 @@ router.get('/all', carController.getAllCars);
 router.get('/:id', carController.getCarById);
 
 // Update a car by ID
-router.put('/:id', carController.updateCar);
+router.put('/:id',adminAuth, carController.updateCar);
 
 // Toggle car status a car by ID
-router.put('/:id', carController.toggleStatus);
+router.put('/status/:id',adminAuth, carController.toggleStatus);
 
 // Delete a car by ID
-router.delete('/:id', carController.deleteCar);
+router.delete('/:id',adminAuth, carController.deleteCar);
 
 export { router as carRouter };

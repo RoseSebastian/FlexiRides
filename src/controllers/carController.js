@@ -1,4 +1,5 @@
 import { Car } from "../models/carModel.js";
+import uploadToCloudinary from "../middlewares/uploadToCloudinary.js";
 
 export const createCar = async (req, res) => {
   try {
@@ -38,8 +39,9 @@ export const createCar = async (req, res) => {
     }
 
     const car = new Car({...req.body, image: imageUrl?.secure_url});
-    await car.save();
-    res.json({ data: car, message: "Car added successfully" });
+    const savedCar = await car.save();
+    const populatedCar = await Car.findById(savedCar._id).populate('features');
+    res.json({ data: populatedCar, message: "Car added successfully" });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
   }
@@ -48,7 +50,8 @@ export const createCar = async (req, res) => {
 // Get all cars
 export const getAllCars = async (req, res) => {
   try {
-    const cars = await Car.find().populate("features").populate("dealerId");
+    const cars = await Car.find()
+    .populate('features');
     res.status(200).json(cars);
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -59,8 +62,7 @@ export const getAllCars = async (req, res) => {
 export const getCarById = async (req, res) => {
   try {
     const car = await Car.findById(req.params.id)
-      .populate("features")
-      .populate("dealerId");
+    .populate('features');
     if (!car) {
       return res.status(404).json({ success: false, message: "Car not found" });
     }
@@ -104,7 +106,8 @@ export const updateCar = async (req, res) => {
     }
     const car = await Car.findByIdAndUpdate(req.params.id, {...req.body, image: imageUrl?.secure_url}, {
       new: true
-    });
+    })
+    .populate('features');
     if (!car) {
       return res.status(404).json({ success: false, message: "Car not found" });
     }
@@ -122,8 +125,9 @@ export const toggleStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: "Car not found" });
     }
     car.isActive = !car.isActive;
-    await car.save();
-    res.status(200).json(car);
+    const savedCar = await car.save();
+    const populatedCar = await Car.findById(savedCar._id).populate('features');
+    res.json(populatedCar);
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
   }
