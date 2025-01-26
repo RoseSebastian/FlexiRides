@@ -1,4 +1,5 @@
 import { Admin } from "../models/adminModel.js";
+import { User } from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/jwt.js";
 import jwt from "jsonwebtoken";
@@ -118,6 +119,32 @@ export const getAllAdmins = async (req, res) => {
   }
 };
 
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select("-password").sort({ username: 1 });
+    res.status(200).json(users);
+  } catch (error) {
+    res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};
+
+export const getAllAdminsAndUsers = async (req, res) => {
+  try {
+    const [admins, users] = await Promise.all([
+      Admin.find().select("-password").sort({ username: 1 }),
+      User.find().select("-password").sort({ username: 1 }),
+    ]);
+
+    res.status(200).json({ admins, users });
+  } catch (error) {
+    res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};
+
 // Get single user by ID
 export const getUserById = async (req, res) => {
   try {
@@ -160,6 +187,22 @@ export const updateProfile = async (req, res) => {
 export const toggleAdminStatus = async (req, res) => {
   try {
     const user = await Admin.findById(req.params.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    user.isActive = !user.isActive
+    await user.save();
+    res.status(200).json(user);
+  } catch (error) {
+    res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};
+
+export const toggleUserStatus = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

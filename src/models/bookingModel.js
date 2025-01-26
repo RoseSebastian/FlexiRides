@@ -1,27 +1,28 @@
 import mongoose, { Schema } from "mongoose";
 
 const bookingSchema = new Schema({
-  customerId: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
   carId: { type: mongoose.Schema.Types.ObjectId, ref: "Car", required: true },
-  start_date: {
+  dealerId: { type: mongoose.Schema.Types.ObjectId, ref: "Admin", required: true },
+  startDate: {
     type: Date,
     required: true,
   },
-  end_date: {
+  endDate: {
     type: Date,
     required: true,
   },
-  total_price: {
+  totalPrice: {
     type: Number,
     required: true,
   },
   status: {
     type: String,
-    enum: ["confirmed", "failed", "cancelled"],
+    enum: ["confirmed", "failed", "canceled"],
     default: "confirmed",
   },
 });

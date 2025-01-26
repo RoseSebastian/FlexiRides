@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
 const wishlistSchema = new Schema({
-  customerId: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,

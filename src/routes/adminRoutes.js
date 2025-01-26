@@ -11,7 +11,10 @@ import {
   changePassword,
   forgotPassword,
   toggleAdminStatus,
-  resetPassword
+  resetPassword,
+  getAllUsers,
+  getAllAdminsAndUsers,
+  toggleUserStatus
 } from "../controllers/adminController.js";
 import { adminAuth } from "../middlewares/adminAuth.js";
 
@@ -27,9 +30,15 @@ router.get("/profile/:id", adminAuth, getUserById);
 
 router.get("/allAdmins", adminAuth, getAllAdmins);
 
+router.get("/allUsers", adminAuth, getAllUsers);
+
+router.get("/allAdminAndUsers", adminAuth, getAllAdminsAndUsers);
+
 router.put("/update", adminAuth, updateProfile);
 
-router.put("/status/:id", adminAuth, toggleAdminStatus);
+router.put("/adminStatus/:id", adminAuth, toggleAdminStatus);
+
+router.put("/userStatus/:id", adminAuth, toggleUserStatus);
 
 router.delete("/delete/:id", adminAuth, deleteAdmin);
 

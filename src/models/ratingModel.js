@@ -1,18 +1,31 @@
 import mongoose, { Schema } from "mongoose";
 
 const ratingSchema = new Schema({
-  bookingId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Booking",
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  carId: {
+    type: Schema.Types.ObjectId,
+    ref: "Car",
     required: true,
   },
   rating: {
     type: Number,
     required: true,
+    min: 1,
+    max: 5,
   },
   comment: {
     type: String,
+    trim: true,
+    maxlength: 500,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
   },
 });
 
-export const Rating = mongoose.model("Rating", ratingSchema);
+export const Review = mongoose.model("Review", ratingSchema);

@@ -7,6 +7,9 @@ const router = express.Router();
 // Create a new car
 router.post('/add',adminAuth, carController.createCar);
 
+// Route to search for cars or get all cars with pagination
+router.get('/', carController.searchCars);
+
 // Get all cars
 router.get('/all', carController.getAllCars);
 

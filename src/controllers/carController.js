@@ -1,4 +1,5 @@
 import { Car } from "../models/carModel.js";
+import { Feature } from "../models/featureModel.js";
 import uploadToCloudinary from "../middlewares/uploadToCloudinary.js";
 
 export const createCar = async (req, res) => {
@@ -44,6 +45,55 @@ export const createCar = async (req, res) => {
     res.json({ data: populatedCar, message: "Car added successfully" });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+// Combined Search and Get All Cars API with Pagination
+//To get the first 20 cars:http://localhost:5000/api/cars?limit=20&page=1
+//To get the next 20 cars:http://localhost:5000/api/cars?limit=20&page=2
+//To search for cars:http://localhost:5000/api/cars?q=sedan&limit=20&page=1
+export const searchCars = async (req, res) => {
+  try {
+    const searchString = req.query.q;
+    const limit = parseInt(req.query.limit) || 20; // Default limit is 20
+    const page = parseInt(req.query.page) || 1; // Default page is 1
+    const skip = (page - 1) * limit;
+
+    let query = {};
+
+    if (searchString) {
+      const searchRegex = new RegExp(searchString, 'i'); // 'i' for case-insensitive
+      const searchNumber = parseFloat(searchString);
+
+      // Find matching features
+      const matchingFeatures = await Feature.find({ name: searchRegex }).select('_id');
+      const featureIds = matchingFeatures.map(feature => feature._id);
+
+      query = {
+        $or: [
+          { model: searchRegex },
+          { licensePlate: searchRegex },
+          { bodyType: searchRegex },
+          { fuelType: searchRegex },
+          { transmission: searchRegex },
+          { seats: isNaN(searchNumber) ? undefined : searchNumber },
+          { year: isNaN(searchNumber) ? undefined : searchNumber },
+          { price: isNaN(searchNumber) ? undefined : searchNumber },
+          { features: { $in: featureIds } },
+        ].filter(condition => condition !== undefined),
+      };
+    }
+
+    const cars = await Car.find(query).limit(limit).skip(skip).populate('features');
+    const totalCars = await Car.countDocuments(query);
+
+    res.json({
+      cars,
+      totalPages: Math.ceil(totalCars / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
