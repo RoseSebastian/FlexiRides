@@ -44,11 +44,10 @@ export const userRegister = async (req, res) => {
     const token = generateToken(userData._id);
     res.cookie("token", token);
 
-    const responseUserData = userData.toObject();
-    delete responseUserData.password;
+    const responseUserData = await User.findById(userData._id).select("-password");
 
     return res.json({
-      data: removePassword(userData),
+      data: removePassword(responseUserData),
       message: "User registered successfully!",
     });
   } catch (error) {
@@ -70,7 +69,7 @@ export const userLogin = async (req, res) => {
     }
     const passwordMatch = bcrypt.compareSync(password, userExist.password);
     if (!passwordMatch) {
-      return res.status(401).json({ message: "Unauthorized user" });
+      return res.status(401).json({ message: "Invalid Password" });
     }
 
     const token = generateToken(userExist._id);
@@ -91,7 +90,7 @@ export const userLogout = async (req, res) => {
   try {
     res.clearCookie("token");
 
-    return res.json({ message: "user logout success" });
+    return res.json({ message: "User loggedout successfully" });
   } catch (error) {
     return res
       .status(error.statusCode || 500)

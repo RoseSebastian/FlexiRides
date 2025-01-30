@@ -70,7 +70,7 @@ export const adminLogin = async (req, res) => {
     }
     const passwordMatch = bcrypt.compareSync(password, userExist.password);
     if (!passwordMatch) {
-      return res.status(401).json({ message: "Unauthorized user" });
+      return res.status(401).json({ message: "Invalid Password" });
     }
 
     const token = generateToken(userExist._id, userExist.role);
