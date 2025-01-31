@@ -6,7 +6,7 @@ import fileUpload from "express-fileupload";
 import { connectDB } from "./src/config/db.js";
 import { apiRouter } from "./src/routes/index.js";
 import cloudinaryConfig from "./src/config/cloudinary.js";
-import errorHandler from "./src/middlewares/errorhandler.js";
+import errorHandler from "./src/middlewares/errorHandler.js";
 
 const port = process.env.PORT;
 const app = express();
