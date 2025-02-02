@@ -37,7 +37,7 @@ export const userRegister = async (req, res) => {
       password: hashedPassword,
       phone,
       address,
-      profilePic: profileUrl?.secure_url,
+      profilePic: profileUrl?.secure_url
     });
     await userData.save();
 
@@ -77,7 +77,7 @@ export const userLogin = async (req, res) => {
 
     return res.json({
       data: removePassword(userExist),
-      message: "user login success",
+      message: "User logged in successfully",
     });
   } catch (error) {
     return res
@@ -139,8 +139,8 @@ export const getUserById = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     let profileUrl = "";
-    const { username, email, phone, address } = req.body;
-    if (!username || !email || !phone || !address) {
+    const { phone, address } = req.body;
+    if (!phone || !address) {
       return res.status(400).json({ message: "Mandatory fields are missing" });
     }
     if (req.files && req.files.profilePic) {

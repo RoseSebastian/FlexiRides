@@ -163,8 +163,8 @@ export const getUserById = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     let profileUrl = "";
-    const { username, email, phone } = req.body;
-    if (!username || !email || !phone) {
+    const { phone } = req.body;
+    if (!phone) {
       return res.status(400).json({ message: "Mandatory fields are missing" });
     }
     if(req.files && req.files.profilePic){
