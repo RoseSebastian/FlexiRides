@@ -215,7 +215,8 @@ export const changePassword = async (req, res) => {
       { new: true }
     ).select("-password");
 
-    res.status(200).json(user);
+    res.status(200).json({data: user,
+      message: "Password changed successfully"});
   } catch (error) {
     res
       .status(error.statusCode || 500)
@@ -236,7 +237,7 @@ export const forgotPassword = async (req, res) => {
     }
 
     const resetToken = generateToken(userData);
-    const resetLink = `${process.env.WEB_URL}/reset-password?token=${resetToken}`;
+    const resetLink = `${process.env.WEB_URL}/reset-password/${resetToken}`;
     const mailBody = `<p>We received a request to reset your password.</p>
           <p>Click the link below to reset your password:</p>
           <a href="${resetLink}">${resetLink}</a>
@@ -247,7 +248,7 @@ export const forgotPassword = async (req, res) => {
       .then(() => console.log("Email sent successfully"))
       .catch((error) => console.error("Error sending email:", error));
 
-    res.status(200).send("Password reset email sent.");
+    res.status(200).json({message: "Email sent with reset link."});
   } catch (error) {
     res
       .status(error.statusCode || 500)

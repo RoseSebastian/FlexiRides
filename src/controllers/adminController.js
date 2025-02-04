@@ -269,7 +269,7 @@ export const forgotPassword = async (req, res) => {
     }
 
     const resetToken = generateToken(userData, userData.role);
-    const resetLink = `${process.env.WEB_URL}/reset-password?token=${resetToken}`;
+    const resetLink = `${process.env.WEB_URL}/admin/reset-password/${resetToken}`;
     const mailBody = `<p>We received a request to reset your password.</p>
           <p>Click the link below to reset your password:</p>
           <a href="${resetLink}">${resetLink}</a>
@@ -280,7 +280,7 @@ export const forgotPassword = async (req, res) => {
       .then(() => console.log("Email sent successfully"))
       .catch((error) => console.error("Error sending email:", error));
 
-    res.status(200).json({ message: "Password reset email sent." });
+    res.status(200).json({ message: "Email sent with reset link." });
   } catch (error) {
     res
       .status(error.statusCode || 500)
@@ -301,7 +301,7 @@ export const resetPassword = async (req, res) => {
     // Verify the reset token
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
     if (!decoded) {
-      return res.status(401).json({ message: "Invalid or expired token" });
+      return res.status(401).json({ message: "Invalid or Link expired" });
     }
 
     // Hash the new password
