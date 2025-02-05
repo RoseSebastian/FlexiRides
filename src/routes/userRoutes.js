@@ -21,7 +21,7 @@ router.post("/register", userRegister);
 
 router.put("/login", userLogin);
 
-router.get("/profile", userAuth, getLoggedInUser);
+router.get("/currentUser", userAuth, getLoggedInUser);
 
 router.get("/profile/:id", userAuth, getUserById);
 

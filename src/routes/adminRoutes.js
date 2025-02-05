@@ -24,7 +24,7 @@ router.post("/register", adminRegister);
 
 router.put("/login", adminLogin);
 
-router.get("/profile", adminAuth, getLoggedInUser);
+router.get("/currentUser", adminAuth, getLoggedInUser);
 
 router.get("/profile/:id", adminAuth, getUserById);
 

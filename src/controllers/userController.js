@@ -102,7 +102,7 @@ export const getLoggedInUser = async (req, res) => {
   try {
     const userId = req.loggedInUser.id;
     const userData = await User.findById(userId).select("-password");
-    return res.json({ data: userData, message: "user profile fetched" });
+    return res.json({ data: userData, message: "User authorized" });
   } catch (error) {
     return res
       .status(error.statusCode || 500)
