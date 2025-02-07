@@ -1,17 +1,18 @@
 import express from "express";
 import * as carController from "../controllers/carController.js";
 import { adminAuth } from "../middlewares/adminAuth.js";
+import { userAuth } from "../middlewares/userAuth.js";
 
 const router = express.Router();
 
 // Create a new car
 router.post('/add',adminAuth, carController.createCar);
 
-// Route to search for cars or get all cars with pagination
-router.get('/', carController.searchCars);
+// Route to search for cars or get all cars with pagination for Admin
+router.get('/',adminAuth, carController.searchCars);
 
-// Get all cars
-router.get('/all', carController.getAllCars);
+// Route to search for cars or get all cars with pagination for User
+router.get('/all',userAuth, carController.getAllCars);
 
 // Get a single car by ID
 router.get('/:id', carController.getCarById);

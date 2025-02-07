@@ -35,13 +35,13 @@ export const createCar = async (req, res) => {
       return res.status(400).json({ message: `This car already exists` });
     }
 
-    if(req.files && req.files.image){
-      imageUrl = await uploadToCloudinary(req.files.image, 'car_images');
+    if (req.files && req.files.image) {
+      imageUrl = await uploadToCloudinary(req.files.image, "car_images");
     }
 
-    const car = new Car({...req.body, image: imageUrl?.secure_url});
+    const car = new Car({ ...req.body, image: imageUrl?.secure_url });
     const savedCar = await car.save();
-    const populatedCar = await Car.findById(savedCar._id).populate('features');
+    const populatedCar = await Car.findById(savedCar._id).populate("features");
     res.json({ data: populatedCar, message: "Car added successfully" });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
@@ -49,25 +49,34 @@ export const createCar = async (req, res) => {
 };
 
 // Combined Search and Get All Cars API with Pagination
-//To get the first 20 cars:http://localhost:5000/api/cars?limit=20&page=1
-//To get the next 20 cars:http://localhost:5000/api/cars?limit=20&page=2
+//To get the first 20 cars:http://localhost:5000/api/cars?active=true&page=1
+//To get the next 20 cars:http://localhost:5000/api/cars?page=2
 //To search for cars:http://localhost:5000/api/cars?q=sedan&limit=20&page=1
 export const searchCars = async (req, res) => {
   try {
     const searchString = req.query.q;
-    const limit = parseInt(req.query.limit) || 20; // Default limit is 20
+    const limit = 20; // Default limit is 20
     const page = parseInt(req.query.page) || 1; // Default page is 1
+    const active =
+      req.query.active && req.query.active === "true" ? true : false;
     const skip = (page - 1) * limit;
 
     let query = {};
 
-    if (searchString) {
-      const searchRegex = new RegExp(searchString, 'i'); // 'i' for case-insensitive
+    if (req.query.active) {
+      const active = req.query.active === "true" ? true : false;
+      query = { isActive: active };
+    }
+
+    if (searchString && searchString.length > 0) {
+      const searchRegex = new RegExp(searchString, "i"); // 'i' for case-insensitive
       const searchNumber = parseFloat(searchString);
 
       // Find matching features
-      const matchingFeatures = await Feature.find({ name: searchRegex }).select('_id');
-      const featureIds = matchingFeatures.map(feature => feature._id);
+      const matchingFeatures = await Feature.find({ name: searchRegex }).select(
+        "_id"
+      );
+      const featureIds = matchingFeatures.map((feature) => feature._id);
 
       query = {
         $or: [
@@ -80,11 +89,11 @@ export const searchCars = async (req, res) => {
           { year: isNaN(searchNumber) ? undefined : searchNumber },
           { price: isNaN(searchNumber) ? undefined : searchNumber },
           { features: { $in: featureIds } },
-        ].filter(condition => condition !== undefined),
+        ].filter((condition) => condition !== undefined),
       };
     }
 
-    const cars = await Car.find(query).limit(limit).skip(skip).populate('features');
+    const cars = await Car.find(query).limit(limit).skip(skip);
     const totalCars = await Car.countDocuments(query);
 
     res.json({
@@ -97,12 +106,50 @@ export const searchCars = async (req, res) => {
   }
 };
 
-// Get all cars
+// Get all cars for Users
 export const getAllCars = async (req, res) => {
   try {
-    const cars = await Car.find()
-    .populate('features');
-    res.status(200).json(cars);
+    const searchString = req.query.q;
+    const limit = 20; // Default limit is 20
+    const page = parseInt(req.query.page) || 1; // Default page is 1
+    const skip = (page - 1) * limit;
+
+    let query = { isActive: true }; // Only include active cars
+
+    if (searchString) {
+      const searchRegex = new RegExp(searchString, 'i'); // 'i' for case-insensitive
+      const searchNumber = parseFloat(searchString);
+
+      // Find matching features
+      const matchingFeatures = await Feature.find({ name: searchRegex }).select('_id');
+      const featureIds = matchingFeatures.map(feature => feature._id);
+
+      query.$and = [
+        { isActive: true },
+        {
+          $or: [
+            { model: searchRegex },
+            { licensePlate: searchRegex },
+            { bodyType: searchRegex },
+            { fuelType: searchRegex },
+            { transmission: searchRegex },
+            { seats: isNaN(searchNumber) ? undefined : searchNumber },
+            { year: isNaN(searchNumber) ? undefined : searchNumber },
+            { price: isNaN(searchNumber) ? undefined : searchNumber },
+            { features: { $in: featureIds } },
+          ].filter(condition => condition !== undefined)
+        }
+      ];
+    }
+
+    const cars = await Car.find(query).limit(limit).skip(skip);
+    const totalCars = await Car.countDocuments(query);
+
+    res.json({
+      cars,
+      totalPages: Math.ceil(totalCars / limit),
+      currentPage: page,
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -111,8 +158,7 @@ export const getAllCars = async (req, res) => {
 // Get car by ID
 export const getCarById = async (req, res) => {
   try {
-    const car = await Car.findById(req.params.id)
-    .populate('features');
+    const car = await Car.findById(req.params.id).populate("features");
     if (!car) {
       return res.status(404).json({ success: false, message: "Car not found" });
     }
@@ -151,13 +197,16 @@ export const updateCar = async (req, res) => {
     ) {
       return res.status(400).json({ message: "Mandatory fields are missing" });
     }
-    if(req.files && req.files.image){
-      imageUrl = await uploadToCloudinary(req.files.image, 'car_images');
+    if (req.files && req.files.image) {
+      imageUrl = await uploadToCloudinary(req.files.image, "car_images");
     }
-    const car = await Car.findByIdAndUpdate(req.params.id, {...req.body, image: imageUrl?.secure_url}, {
-      new: true
-    })
-    .populate('features');
+    const car = await Car.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body, image: imageUrl?.secure_url },
+      {
+        new: true,
+      }
+    ).populate("features");
     if (!car) {
       return res.status(404).json({ success: false, message: "Car not found" });
     }
@@ -176,7 +225,7 @@ export const toggleStatus = async (req, res) => {
     }
     car.isActive = !car.isActive;
     const savedCar = await car.save();
-    const populatedCar = await Car.findById(savedCar._id).populate('features');
+    const populatedCar = await Car.findById(savedCar._id).populate("features");
     res.json(populatedCar);
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });

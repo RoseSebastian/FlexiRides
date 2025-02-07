@@ -7,6 +7,7 @@ import uploadToCloudinary from "../middlewares/uploadToCloudinary.js";
 import sendEmail from "../utils/sendMail.js";
 
 const salt_rounds = Number(process.env.SALT_ROUNDS);
+const NODE_ENV = process.env.NODE_ENV;
 const removePassword = (user) => {
   const responseUserData = user.toObject();
   delete responseUserData.password;
@@ -74,7 +75,11 @@ export const adminLogin = async (req, res) => {
     }
 
     const token = generateToken(userExist._id, userExist.role);
-    res.cookie("token", token);
+    res.cookie("token", token, {
+      sameSite: NODE_ENV === "production" ? "None" : "Lax",
+      secure: NODE_ENV === "production",
+      httpOnly: NODE_ENV === "production",
+    });
 
     return res.json({ data: removePassword(userExist), message: "user login success" });
   } catch (error) {
@@ -86,7 +91,11 @@ export const adminLogin = async (req, res) => {
 
 export const adminLogout = async (req, res) => {
   try {
-    res.clearCookie("token");
+    res.clearCookie("token", {
+      sameSite: NODE_ENV === "production" ? "None" : "Lax",
+      secure: NODE_ENV === "production",
+      httpOnly: NODE_ENV === "production",
+    });
 
     return res.json({ message: "user logout success" });
   } catch (error) {

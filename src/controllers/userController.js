@@ -6,6 +6,7 @@ import uploadToCloudinary from "../middlewares/uploadToCloudinary.js";
 import sendEmail from "../utils/sendMail.js";
 
 const salt_rounds = Number(process.env.SALT_ROUNDS);
+const NODE_ENV = process.env.NODE_ENV;
 const removePassword = (user) => {
   const responseUserData = user.toObject();
   delete responseUserData.password;
@@ -37,14 +38,16 @@ export const userRegister = async (req, res) => {
       password: hashedPassword,
       phone,
       address,
-      profilePic: profileUrl?.secure_url
+      profilePic: profileUrl?.secure_url,
     });
     await userData.save();
 
     const token = generateToken(userData._id);
     res.cookie("token", token);
 
-    const responseUserData = await User.findById(userData._id).select("-password");
+    const responseUserData = await User.findById(userData._id).select(
+      "-password"
+    );
 
     return res.json({
       data: removePassword(responseUserData),
@@ -73,7 +76,11 @@ export const userLogin = async (req, res) => {
     }
 
     const token = generateToken(userExist._id);
-    res.cookie("token", token);
+    res.cookie("token", token, {
+      sameSite: NODE_ENV === "production" ? "None" : "Lax",
+      secure: NODE_ENV === "production",
+      httpOnly: NODE_ENV === "production",
+    });
 
     return res.json({
       data: removePassword(userExist),
@@ -88,7 +95,11 @@ export const userLogin = async (req, res) => {
 
 export const userLogout = async (req, res) => {
   try {
-    res.clearCookie("token");
+    res.clearCookie("token", {
+      sameSite: NODE_ENV === "production" ? "None" : "Lax",
+      secure: NODE_ENV === "production",
+      httpOnly: NODE_ENV === "production",
+    });
 
     return res.json({ message: "User loggedout successfully" });
   } catch (error) {
@@ -215,8 +226,9 @@ export const changePassword = async (req, res) => {
       { new: true }
     ).select("-password");
 
-    res.status(200).json({data: user,
-      message: "Password changed successfully"});
+    res
+      .status(200)
+      .json({ data: user, message: "Password changed successfully" });
   } catch (error) {
     res
       .status(error.statusCode || 500)
@@ -248,7 +260,7 @@ export const forgotPassword = async (req, res) => {
       .then(() => console.log("Email sent successfully"))
       .catch((error) => console.error("Error sending email:", error));
 
-    res.status(200).json({message: "Email sent with reset link."});
+    res.status(200).json({ message: "Email sent with reset link." });
   } catch (error) {
     res
       .status(error.statusCode || 500)
