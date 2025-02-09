@@ -38,11 +38,11 @@ export const findWishlistEntry = async (req, res) => {
     try {
         const  userId  = req.loggedInUser.id;
         const carId = req.params.id;
-        const wishlistEntry = await Wishlist.findOne({ userId, carId }).populate('carId');
+        const wishlistEntry = await Wishlist.findOne({ userId, carId });
         if (!wishlistEntry) {
-            res.status(200).json(false);
+            return res.status(404).json({ message: "Not found" });
         }else{
-            res.status(200).json(true);
+            res.status(200).json(wishlistEntry);
         }  
     } catch (error) {
         res.status(500).json({ message: error.message });
