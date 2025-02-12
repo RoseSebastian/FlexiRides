@@ -92,6 +92,20 @@ export const getBookings = async (req, res) => {
   }
 };
 
+//Get car specific bookings
+export const getBookingsByCarID = async (req, res) => {
+  try {
+    const bookings = await Booking.find({
+      carId: req.params.id,
+    }).populate("carId");
+    res.status(200).json(bookings);
+  } catch (error) {
+    res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};
+
 // Get a single booking by ID
 export const getBookingById = async (req, res) => {
   try {

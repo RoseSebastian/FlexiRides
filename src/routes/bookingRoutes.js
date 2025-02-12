@@ -7,6 +7,7 @@ import {
   updateBooking,
   deleteBooking,
   cancelBooking,
+  getBookingsByCarID
 } from "../controllers/bookingController.js";
 import { adminAuth } from "../middlewares/adminAuth.js";
 import { userAuth } from "../middlewares/userAuth.js";
@@ -17,9 +18,10 @@ const router = express.Router();
 router.post("/", userAuth, createBooking);
 router.get("/allBookings", adminAuth, getAllBookings);
 router.get("/", userAuth, getBookings);
+router.get("/car/:id", getBookingsByCarID);
 router.get("/:id", getBookingById);
 router.put("/:id", adminAuth, updateBooking);
 router.delete("/:id", adminAuth, deleteBooking);
-router.patch("/:id/cancel", userAuth, cancelBooking);
+router.patch("/:id", userAuth, cancelBooking);
 
 export { router as bookingRouter };

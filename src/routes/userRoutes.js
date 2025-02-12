@@ -14,6 +14,7 @@ import {
   resetPassword
 } from "../controllers/userController.js";
 import { userAuth } from "../middlewares/userAuth.js";
+import { adminAuth } from "../middlewares/adminAuth.js"
 
 const router = express.Router();
 
@@ -29,7 +30,7 @@ router.get("/allUsers", userAuth, getAllUsers);
 
 router.put("/update", userAuth, updateProfile);
 
-router.put("/status/:id", userAuth, toggleUserStatus);
+router.put("/status/:id", adminAuth, toggleUserStatus);
 
 router.delete("/delete/:id", userAuth, deleteUser);
 
