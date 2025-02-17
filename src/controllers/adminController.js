@@ -117,6 +117,17 @@ export const getLoggedInUser = async (req, res) => {
   }
 };
 
+export const getAllDealers = async (req, res) => {
+  try {
+    const users = await Admin.find({role: 'dealer'}).select("-password").sort({ username: 1 });
+    res.status(200).json(users);
+  } catch (error) {
+    res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};
+
 export const getAllAdmins = async (req, res) => {
   try {
     const users = await Admin.find().select("-password").sort({ username: 1 });
@@ -158,6 +169,30 @@ export const getAllAdminsAndUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
   try {
     const user = await Admin.findById(req.params.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};
+
+export const editProfile = async (req, res) => {
+  try {
+    let profileUrl = "";
+    const {username, phone } = req.body;
+    if (!username || !phone) {
+      return res.status(400).json({ message: "Mandatory fields are missing" });
+    }
+    if(req.files && req.files.profilePic){
+      profileUrl = await uploadToCloudinary(req.files.profilePic, 'profile_pictures');
+    }
+    const user = await Admin.findByIdAndUpdate(req.params.id, {...req.body, profilePic: profileUrl?.secure_url}, {
+      new: true,
+    }).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

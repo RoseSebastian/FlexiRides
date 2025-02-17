@@ -11,6 +11,11 @@ const ratingSchema = new Schema({
     ref: "Car",
     required: true,
   },
+  bookingId: {
+    type: Schema.Types.ObjectId,
+    ref: "Booking",
+    required: true,
+  },
   rating: {
     type: Number,
     required: true,

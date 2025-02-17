@@ -3,7 +3,7 @@ import { Review } from "../models/ratingModel.js";
 
 export const addReview = async (req, res) => {
     try {
-        const { carId, rating, comment } = req.body;
+        const { carId,bookingId, rating, comment } = req.body;
         const userId = req.loggedInUser.id;
         
         const car = await Car.findById(carId);
@@ -16,7 +16,7 @@ export const addReview = async (req, res) => {
         }
 
         // Create or update the review
-        const review = await Review.findOneAndUpdate({ userId, carId }, { rating, comment }, { new: true, upsert: true });
+        const review = await Review.findOneAndUpdate({ userId, carId, bookingId }, { rating, comment }, { new: true, upsert: true });
 
         res.status(201).json({ data: review, message: "Review added successfully" });
     } catch (error) {
@@ -70,6 +70,18 @@ export const getAverageRating = async (req, res) => {
         const averageRating = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
 
         res.status(200).json({ data: averageRating, message: "avg reviews fetched" });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error", error });
+    }
+};
+
+export const getBookingReview = async (req, res) => {
+    try {
+        const  bookingId  = req.params.id;
+
+        const review = await Review.find({bookingId: bookingId});
+        
+        res.status(200).json({ data: review, message: "reviews fetched successfully" });
     } catch (error) {
         res.status(500).json({ message: "Internal server error", error });
     }

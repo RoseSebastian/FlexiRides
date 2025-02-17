@@ -11,7 +11,8 @@ import {
   changePassword,
   forgotPassword,
   toggleUserStatus,
-  resetPassword
+  resetPassword,
+  editProfile
 } from "../controllers/userController.js";
 import { userAuth } from "../middlewares/userAuth.js";
 import { adminAuth } from "../middlewares/adminAuth.js"
@@ -25,6 +26,8 @@ router.put("/login", userLogin);
 router.get("/currentUser", userAuth, getLoggedInUser);
 
 router.get("/profile/:id", userAuth, getUserById);
+
+router.put("/edit/:id", adminAuth, editProfile);
 
 router.get("/allUsers", userAuth, getAllUsers);
 

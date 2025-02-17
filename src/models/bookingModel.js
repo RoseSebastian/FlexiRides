@@ -7,7 +7,6 @@ const bookingSchema = new Schema({
     required: true,
   },
   carId: { type: mongoose.Schema.Types.ObjectId, ref: "Car", required: true },
-  dealerId: { type: mongoose.Schema.Types.ObjectId, ref: "Admin", required: true },
   startDate: {
     type: Date,
     required: true,
@@ -19,6 +18,9 @@ const bookingSchema = new Schema({
   totalPrice: {
     type: Number,
     required: true,
+  },
+  transactionId: {
+    type: String,
   },
   status: {
     type: String,

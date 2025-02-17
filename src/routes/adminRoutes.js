@@ -4,6 +4,7 @@ import {
   adminLogin,
   adminLogout,
   getLoggedInUser,
+  getAllDealers,
   getAllAdmins,
   getUserById,
   updateProfile,
@@ -14,7 +15,8 @@ import {
   resetPassword,
   getAllUsers,
   getAllAdminsAndUsers,
-  toggleUserStatus
+  toggleUserStatus,
+  editProfile
 } from "../controllers/adminController.js";
 import { adminAuth } from "../middlewares/adminAuth.js";
 
@@ -27,6 +29,10 @@ router.put("/login", adminLogin);
 router.get("/currentUser", adminAuth, getLoggedInUser);
 
 router.get("/profile/:id", adminAuth, getUserById);
+
+router.put("/edit/:id", adminAuth, editProfile);
+
+router.get("/allDealers", adminAuth, getAllDealers);
 
 router.get("/allAdmins", adminAuth, getAllAdmins);
 

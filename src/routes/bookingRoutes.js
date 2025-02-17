@@ -7,6 +7,7 @@ import {
   updateBooking,
   deleteBooking,
   cancelBooking,
+  failedBooking,
   getBookingsByCarID
 } from "../controllers/bookingController.js";
 import { adminAuth } from "../middlewares/adminAuth.js";
@@ -23,5 +24,6 @@ router.get("/:id", getBookingById);
 router.put("/:id", adminAuth, updateBooking);
 router.delete("/:id", adminAuth, deleteBooking);
 router.patch("/:id", userAuth, cancelBooking);
+router.patch("/failed/:id", userAuth, failedBooking);
 
 export { router as bookingRouter };

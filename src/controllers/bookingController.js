@@ -6,13 +6,12 @@ import { User } from "../models/userModel.js";
 // Create a new booking
 export const createBooking = async (req, res) => {
   try {
-    const { userId, carId, dealerId, startDate, endDate, totalPrice } =
+    const { userId, carId, startDate, endDate, totalPrice } =
       req.body;
 
     const user = await User.findById({_id: userId});
     const car = await Car.findById({_id: carId});
-    const dealer = await Admin.findById({_id: dealerId});
-    if (!user || !car || !dealer) {
+    if (!user || !car) {
       return res
         .status(404)
         .json({ message: "User, Car, or Dealer not found" });
@@ -30,7 +29,6 @@ export const createBooking = async (req, res) => {
     const newBooking = new Booking({
       userId: userId,
       carId: carId,
-      dealerId: dealerId,
       startDate,
       endDate,
       totalPrice,
@@ -43,10 +41,6 @@ export const createBooking = async (req, res) => {
       })
       .populate({
         path: 'carId'
-      })
-      .populate({
-        path: 'dealerId',
-        select: '_id username'
       });
     res.status(201).json(populatedBooking);
   } catch (error) {
@@ -65,10 +59,6 @@ export const getAllBookings = async (req, res) => {
       })
       .populate({
         path: 'carId'
-      })
-      .populate({
-        path: 'dealerId',
-        select: '_id username'
       });
     res.status(200).json(bookings);
   } catch (error) {
@@ -109,17 +99,10 @@ export const getBookingsByCarID = async (req, res) => {
 // Get a single booking by ID
 export const getBookingById = async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.id).populate({
-        path: 'userId',
-        select: '_id username'
-      })
+    const booking = await Booking.findById(req.params.id)
       .populate({
         path: 'carId'
       })
-      .populate({
-        path: 'dealerId',
-        select: '_id username'
-      });
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
@@ -134,7 +117,7 @@ export const getBookingById = async (req, res) => {
 // Update a booking
 export const updateBooking = async (req, res) => {
   try {
-    const { userId, carId, dealerId, startDate, endDate, totalPrice } = req.body;
+    const { userId, carId, startDate, endDate, totalPrice } = req.body;
 
     const booking = await Booking.findById(req.params.id);
     if (!booking) {
@@ -142,8 +125,7 @@ export const updateBooking = async (req, res) => {
     }
 
     booking.userId = userId || booking.userId;
-    booking.carId = carId || booking.carId;
-    booking.dealerId = dealerId || booking.dealerId;
+    booking.carId = carId || booking.carId;   
     booking.startDate = startDate || booking.startDate;
     booking.endDate = endDate || booking.endDate;
     booking.totalPrice = totalPrice || booking.totalPrice;
@@ -155,10 +137,6 @@ export const updateBooking = async (req, res) => {
       })
       .populate({
         path: 'carId'
-      })
-      .populate({
-        path: 'dealerId',
-        select: '_id username'
       });
     res.status(201).json(populatedBooking);
   } catch (error) {
@@ -199,10 +177,27 @@ export const cancelBooking = async (req, res) => {
       })
       .populate({
         path: 'carId'
-      })
+      });
+    res.status(201).json(populatedBooking);
+  } catch (error) {
+    res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};
+
+export const failedBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    booking.status = "failed";
+    const savedBooking =  await booking.save();
+    const populatedBooking = await Booking.findById(savedBooking._id)
       .populate({
-        path: 'dealerId',
-        select: '_id username'
+        path: 'carId'
       });
     res.status(201).json(populatedBooking);
   } catch (error) {
