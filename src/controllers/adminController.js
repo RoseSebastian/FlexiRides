@@ -369,3 +369,41 @@ export const resetPassword = async (req, res) => {
       .json({ message: error.message || "Internal server error" });
   }
 };
+
+export const addAdmin = async (req, res) => {
+  try {
+    let profileUrl = "";
+    const { username, email, password, phone, role } = req.body;
+    if (!username || !email || !password || !phone || !role) {
+      return res.status(400).json({ message: "Mandatory fields are missing" });
+    }
+    const isUserExist = await Admin.findOne({ email });
+    if (isUserExist) {
+      return res.status(400).json({ message: `${isUserExist.role} already exists` });
+    }
+    const hashedPassword = bcrypt.hashSync(password, salt_rounds);
+
+    if(req.files && req.files.profilePic){
+      profileUrl = await uploadToCloudinary(req.files.profilePic, 'profile_pictures');
+    }
+
+    const userData = new Admin({
+      username,
+      email,
+      password: hashedPassword,
+      phone,
+      role,
+      profilePic : profileUrl?.secure_url
+    });
+    await userData.save();
+   
+    return res.json({
+      data: removePassword(userData),
+      message: `${userData.role} added successfully!`,
+    });
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};

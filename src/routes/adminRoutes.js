@@ -16,13 +16,16 @@ import {
   getAllUsers,
   getAllAdminsAndUsers,
   toggleUserStatus,
-  editProfile
+  editProfile,
+  addAdmin
 } from "../controllers/adminController.js";
 import { adminAuth } from "../middlewares/adminAuth.js";
 
 const router = express.Router();
 
 router.post("/register", adminRegister);
+
+router.post("/add", addAdmin);
 
 router.put("/login", adminLogin);
 

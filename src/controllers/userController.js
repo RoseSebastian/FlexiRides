@@ -335,3 +335,46 @@ export const resetPassword = async (req, res) => {
       .json({ message: error.message || "Internal server error" });
   }
 };
+
+export const addUser = async (req, res) => {
+  try {
+    let profileUrl = "";
+    const { username, email, password, phone, address } = req.body;
+    if (!username || !email || !password || !phone || !address) {
+      return res.status(400).json({ message: "Mandatory fields are missing" });
+    }
+    const isUserExist = await User.findOne({ email });
+    if (isUserExist) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+    const hashedPassword = bcrypt.hashSync(password, salt_rounds);
+
+    if (req.files && req.files.profilePic) {
+      profileUrl = await uploadToCloudinary(
+        req.files.profilePic,
+        "profile_pictures"
+      );
+    }
+    const userData = new User({
+      username,
+      email,
+      password: hashedPassword,
+      phone,
+      address,
+      profilePic: profileUrl?.secure_url,
+    });
+    await userData.save();
+    const responseUserData = await User.findById(userData._id).select(
+      "-password"
+    );
+
+    return res.json({
+      data: removePassword(responseUserData),
+      message: "Member added successfully!",
+    });
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};
